@@ -15,7 +15,6 @@ public class Stock {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private Long productId;
     private Long quantity;
 
     public Stock(final Long id, final Long quantity) {
@@ -23,6 +22,7 @@ public class Stock {
         this.quantity = quantity;
     }
 
+    // 재고를 감소 시킨다.
     public void decrease(final Long quantity) {
         if (this.quantity - quantity < 0) {
             throw new RuntimeException("재고 부족");
