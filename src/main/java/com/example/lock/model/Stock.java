@@ -1,9 +1,6 @@
 package com.example.lock.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +13,8 @@ public class Stock {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private Long quantity;
+    @Version
+    private Long version;
 
     public Stock(final Long id, final Long quantity) {
         this.id = id;
