@@ -23,4 +23,10 @@ public class StockService {
         stock.decrease(quantity);
         stockRepository.saveAndFlush(stock);
     }
+
+    public void decreaseWithLock(final Long id, final Long quantity) {
+        Stock stock = stockRepository.findById(id).orElseThrow();
+        stock.decrease(quantity);
+        stockRepository.saveAndFlush(stock);
+    }
 }

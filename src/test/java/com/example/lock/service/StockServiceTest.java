@@ -1,11 +1,13 @@
 package com.example.lock.service;
 
+import com.example.lock.config.LockDataSourceConfig;
 import com.example.lock.model.Stock;
 import com.example.lock.repository.StockRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -15,6 +17,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Import(LockDataSourceConfig.class)
 public class StockServiceTest {
 
     @Autowired
@@ -23,18 +26,13 @@ public class StockServiceTest {
     private StockService stockService;
     @Autowired
     private PessimisticLockStockService pessimisticLockStockService;
+    @Autowired
+    private NamedLockStockService namedLockStockService;
 
     @BeforeEach
     public void before() {
         Stock stock = new Stock(1L, 100L);
         stockRepository.saveAndFlush(stock);
-    }
-
-    @Test
-    public void stock_decrease() {
-        stockService.decrease(1L, 1L);
-        Stock stock = stockRepository.findById(1L).orElseThrow();
-        assertThat(stock.getQuantity()).isEqualTo(99L);
     }
 
     @Test
@@ -97,6 +95,30 @@ public class StockServiceTest {
         IntStream.range(0, 100).forEach(i -> executorService.submit(() -> {
                     try {
                         pessimisticLockStockService.decrease(1L, 1L);
+                    }
+                    finally {
+                        latch.countDown();
+                    }
+                }
+        ));
+
+        latch.await();
+        Stock stock = stockRepository.findById(1L).orElseThrow();
+
+        assertThat(stock.getQuantity()).isEqualTo(0L);
+    }
+
+    @Test
+    public void namedLockConcurrency100Request() throws InterruptedException {
+        int threadCount = 100;
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        IntStream.range(0, 100).forEach(i -> executorService.submit(() -> {
+                    try {
+                        namedLockStockService.decrease(1L, 1L);
                     }
                     finally {
                         latch.countDown();
