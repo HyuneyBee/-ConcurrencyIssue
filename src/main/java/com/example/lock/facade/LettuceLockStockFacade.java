@@ -16,13 +16,16 @@ public class LettuceLockStockFacade {
     }
 
     public void decrease(Long id, Long quantity) throws InterruptedException {
+        // lock 획득
         while (!redisLockRepository.lock(id)){
             Thread.sleep(100);
         }
 
         try {
+            // 재고감소
             stockService.decrease(id, quantity);
         } finally {
+            // lock 해제
             redisLockRepository.unlock(id);
         }
     }
