@@ -2,7 +2,6 @@ package com.example.lock.facade;
 
 import com.example.lock.model.Stock;
 import com.example.lock.repository.StockRepository;
-import com.example.lock.service.StockService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,14 +14,15 @@ import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class LettuceLockStockFacadeTest {
+class RedissonLockStockFacadeTest {
     @Autowired
     private StockRepository stockRepository;
 
     @Autowired
-    private LettuceLockStockFacade lettuceLockStockFacade;
+    private RedissonLockStockFacade redissonLockStockFacade;
 
     @BeforeEach
     public void before() {
@@ -46,9 +46,7 @@ class LettuceLockStockFacadeTest {
 
         IntStream.range(0, 100).forEach(i -> executorService.submit(() -> {
                     try {
-                        lettuceLockStockFacade.decrease(1L, 1L);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        redissonLockStockFacade.decrease(1L, 1L);
                     } finally {
                         latch.countDown();
                     }
